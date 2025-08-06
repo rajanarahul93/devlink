@@ -95,25 +95,26 @@ func main() {
     }
     
     // Static file serving (MUST come after API routes)
-    // Serve static files from the frontend dist directory
-// Serve static files from a specific path
-router.Static("/static", frontendPath)
-
-// Serve index.html at root and handle client-side routing
-router.GET("/", func(c *gin.Context) {
-    c.File(frontendPath + "/index.html")
-})
-
-// Handle client-side routing for SPA routes
-router.NoRoute(func(c *gin.Context) {
-    // Only serve index.html for non-API routes
-    if !strings.HasPrefix(c.Request.URL.Path, "/api") {
+    // Serve static assets FIRST with correct MIME types
+    router.Static("/assets", frontendPath+"/assets")
+    router.StaticFile("/favicon.ico", frontendPath+"/favicon.ico")
+    router.StaticFile("/vite.svg", frontendPath+"/vite.svg")
+    
+    // Serve index.html at root
+    router.GET("/", func(c *gin.Context) {
         c.File(frontendPath + "/index.html")
-    } else {
-        c.JSON(404, gin.H{"error": "API endpoint not found"})
-    }
-})
-
+    })
+    
+    // Handle client-side routing for SPA routes
+    router.NoRoute(func(c *gin.Context) {
+        // Only serve index.html for non-API and non-asset routes
+        if !strings.HasPrefix(c.Request.URL.Path, "/api") && 
+           !strings.HasPrefix(c.Request.URL.Path, "/assets") {
+            c.File(frontendPath + "/index.html")
+        } else {
+            c.JSON(404, gin.H{"error": "Not found"})
+        }
+    })
     
     log.Printf("Server starting on port %s", cfg.Port)
     log.Fatal(router.Run(":" + cfg.Port))

@@ -4,7 +4,6 @@ import (
     "log"
     "net/http"
     "os"
-    "strings"
     "time"
 
     "devlink-backend/internal/config"
@@ -94,27 +93,9 @@ func main() {
         frontendPath = "../../devlink-frontend/dist"
     }
     
-    // Static file serving (MUST come after API routes)
-    // Serve static assets FIRST with correct MIME types
-    router.Static("/assets", frontendPath+"/assets")
-    router.StaticFile("/favicon.ico", frontendPath+"/favicon.ico")
-    router.StaticFile("/vite.svg", frontendPath+"/vite.svg")
-    
-    // Serve index.html at root
-    router.GET("/", func(c *gin.Context) {
-        c.File(frontendPath + "/index.html")
-    })
-    
-    // Handle client-side routing for SPA routes
-    router.NoRoute(func(c *gin.Context) {
-        // Only serve index.html for non-API and non-asset routes
-        if !strings.HasPrefix(c.Request.URL.Path, "/api") && 
-           !strings.HasPrefix(c.Request.URL.Path, "/assets") {
-            c.File(frontendPath + "/index.html")
-        } else {
-            c.JSON(404, gin.H{"error": "Not found"})
-        }
-    })
+    // SIMPLIFIED STATIC FILE SERVING - This resolves MIME type issues
+    // Use Go's built-in StaticFS which handles MIME types correctly
+    router.StaticFS("/", http.Dir(frontendPath))
     
     log.Printf("Server starting on port %s", cfg.Port)
     log.Fatal(router.Run(":" + cfg.Port))

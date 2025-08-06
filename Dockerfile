@@ -42,8 +42,7 @@ COPY --from=backend-builder /app/server .
 # But in Docker, we'll place it at "./frontend/dist"
 COPY --from=backend-builder /app/frontend/dist ./frontend/dist
 
-# Copy environment file (optional)
-COPY devlink-backend/.env .env
+
 
 EXPOSE 8080
 CMD ["./server"]

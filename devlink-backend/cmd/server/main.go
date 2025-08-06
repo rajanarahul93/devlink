@@ -4,6 +4,7 @@ import (
     "log"
     "net/http"
     "os"
+    "strings"
     "time"
 
     "devlink-backend/internal/config"
@@ -95,12 +96,24 @@ func main() {
     
     // Static file serving (MUST come after API routes)
     // Serve static files from the frontend dist directory
-    router.Static("/", frontendPath)
-    
-    // Handle client-side routing - serve index.html for all unmatched routes
-    router.NoRoute(func(c *gin.Context) {
+// Serve static files from a specific path
+router.Static("/static", frontendPath)
+
+// Serve index.html at root and handle client-side routing
+router.GET("/", func(c *gin.Context) {
+    c.File(frontendPath + "/index.html")
+})
+
+// Handle client-side routing for SPA routes
+router.NoRoute(func(c *gin.Context) {
+    // Only serve index.html for non-API routes
+    if !strings.HasPrefix(c.Request.URL.Path, "/api") {
         c.File(frontendPath + "/index.html")
-    })
+    } else {
+        c.JSON(404, gin.H{"error": "API endpoint not found"})
+    }
+})
+
     
     log.Printf("Server starting on port %s", cfg.Port)
     log.Fatal(router.Run(":" + cfg.Port))

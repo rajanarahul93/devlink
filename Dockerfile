@@ -27,7 +27,8 @@ COPY --from=frontend-builder /app/frontend/dist ./frontend/dist
 RUN go build -o server ./cmd/server/main.go
 
 # Final stage: run the app
-FROM debian:bullseye-slim
+FROM debian:bookworm-slim
+
 
 # Install ca-certificates for HTTPS requests
 RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
